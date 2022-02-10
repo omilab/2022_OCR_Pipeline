@@ -24,7 +24,7 @@ class Config:
         self.username = "omilab.openu@gmail.com"
         self.password = "Transkribus2020"
         self.src_path = set_source_path()
-        self.collection_id = "76162"
+        self.collection_id = "138047"
         self.line_detection = ""
         self.htr_model_id = "23005"
         self.htr_lang_model = "YES"
@@ -415,7 +415,7 @@ def delete_garbage_text(pgfile, garbage_line_width):
     else:
         return False
 
-v = False
+v = True
 def upload_pipeline(config):
     folders_to_be_uploaded = find_sub_folders_with_toc_file(config.src_path)
     outfolder = os.path.join(config.src_path, "transkribus_output")
@@ -513,6 +513,7 @@ def upload_pipeline(config):
 
 def upload_a_folder(sfolder):
     user = config.username
+    
     outfolder = os.path.join(config.src_path, tkbs_subfolder)
     # outfolder += "/transkribus_output"
     prep_dir(outfolder)
