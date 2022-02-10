@@ -5,7 +5,7 @@
 from typing import Generator
 import os
 
-def enumerate_folders(base_dir: str) -> Generator[str, None, None]
+def enumerate_folders(base_dir: str) -> Generator[str, None, None]:
     for newspaper in os.listdir(base_dir):
         newspaper_path = os.path.join(base_dir, newspaper)
         if not os.path.isdir(newspaper_path):
