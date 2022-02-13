@@ -159,6 +159,7 @@ class TranskribusClient():
         self.sREQ_collection_createCollection       = sServerUrl + '/rest/collections/createCollection'
         self.sREQ_collection_createDocument         = sServerUrl + '/rest/collections/%s/upload'
         self.sREQ_collection_uploadProc             = sServerUrl + '/rest/uploads' #TEST
+        self.sREQ_collection_document               = sServerUrl + "/rest/collections/%s/%s"
 
         self.sREQ_collection_fulldoc                = sServerUrl + '/rest/collections/%s/%s/fulldoc'
         self.sREQ_collection_fulldoc_xml            = sServerUrl + '/rest/collections/%s/%s/fulldoc.xml'
@@ -322,7 +323,7 @@ class TranskribusClient():
         Return True
         """
         self._assertLoggedIn()
-        myReq = self.sREQ_collection_collection%(colId, docId)
+        myReq = self.sREQ_collection_document%(colId, docId)
         resp = self._DELETE(myReq, { 'collId':colId, 'id':docId })
         resp.raise_for_status()
         return resp

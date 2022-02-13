@@ -19,6 +19,14 @@
             "program": "${workspaceFolder}\\convert_olive_to_tkbs.py",
             "console": "integratedTerminal",
             "args": ["../data/processed", "--overwrite", "--verbose"]
+        },
+        {
+            "name": "Upload to Transkribus",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\upload_documents.py",
+            "console": "integratedTerminal",
+            "args": ["../data/processed", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "138498"]
         }
-
+    ]
 }

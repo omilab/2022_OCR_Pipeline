@@ -3,6 +3,7 @@
 # Enumerates all daily folders, yielding each folder.
 # All paths are relative to base_dir
 import argparse
+import json
 import logging
 from typing import Any
 import os
@@ -36,3 +37,8 @@ def init_tkbs_connection(args: argparse.Namespace):
     tkbs.auth_login(args.tkbs_user, args.tkbs_password, True)
 
     return tkbs
+
+def save_job_indication(folder: str, job_id: int):
+    job_dict = {'job': job_id}
+    with open(os.path.join(folder, 'job-status.json'), 'w') as fp:
+        json.dump(job_dict, fp)
