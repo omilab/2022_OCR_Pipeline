@@ -2,25 +2,20 @@
 
 # Enumerates all daily folders, yielding each folder.
 # All paths are relative to base_dir
-from typing import Generator
+import argparse
+from enum import Enum
+import logging
+from typing import Any, Generator
 import os
 
-def enumerate_folders(base_dir: str) -> Generator[str, None, None]:
-    for newspaper in os.listdir(base_dir):
-        newspaper_path = os.path.join(base_dir, newspaper)
-        if not os.path.isdir(newspaper_path):
-            continue
-        for year in os.listdir(newspaper_path):
-            year_path = os.path.join(newspaper_path, year)
-            if not os.path.isdir(year_path):
-                continue
-            for month in os.listdir(year_path):
-                month_path = os.path.join(year_path, month)
-                if not os.path.isdir(month_path):
-                    continue
-                for day in os.listdir(month_path):
-                    day_path = os.path.join(month_path, day)
-                    if not os.path.isdir(day_path):
-                        continue
-                    full_day_path = os.path.join(newspaper, year, month, day)
-                    yield full_day_path
+def setup_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('base', help="Base Directory to Process")
+    parser.add_argument('--log_file', default='pipeline.log', help='Log file for detailed output')
+    parser.add_argument('--verbose', action='store_true', default=False, help='Write more information to the logfile')
+    parser.add_argument('--overwrite', action='store_true', default=False, help='Overwrite existing data if data has already been processed before')
+
+    return parser
+
+def setup_logging(args: Any):
+    logging.basicConfig(filename=args.log_file, filemode="w", level=logging.DEBUG if args.verbose else logging.INFO)

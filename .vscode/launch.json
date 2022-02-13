@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}\\unzip_documents.py",
             "console": "integratedTerminal",
-            "args": ["../data/processed"]
+            "args": ["../data/processed", "--overwrite", "--verbose"]
         }
     ]
 }
