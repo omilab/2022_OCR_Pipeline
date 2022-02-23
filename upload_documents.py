@@ -10,7 +10,7 @@ from xml.etree import ElementTree
 from tqdm import tqdm
 from TkbsApiClient import TranskribusClient
 from TkbsDocument import Document
-from utilities import add_transkribus_args, init_tkbs_connection, save_job_indication, setup_logging, setup_parser
+from utilities import add_transkribus_args, gather_document_folders, init_tkbs_connection, load_document, save_job_indication, setup_logging, setup_parser
 
 
 def get_args() -> Any:
@@ -20,17 +20,6 @@ def get_args() -> Any:
     setup_logging(args)
 
     return args
-
-# Gather all documents, returning a list of (base_dir, Document object)
-def gather_documents(base: str):
-    folders = glob.glob(os.path.join(base, '**', 'legacy_output'), recursive=True)
-    folders = [os.path.dirname(f) for f in folders]
-
-    for folder in folders:
-        doc = Document()
-        doc.load_legacy_data(folder)
-        yield (folder, doc)
-
 
 # Upload Transkribus document, returning the document id and job id
 def upload_document(tkbs: TranskribusClient, args: argparse.Namespace, doc_dir: str, doc: Document) -> tuple[int, int]:
@@ -93,7 +82,10 @@ def main():
     uploaded = skipped = 0
 
     print(f'Uploading documents from {args.base} to Transkribus collection {args.tkbs_collection_id}')
-    for folder, doc in tqdm(gather_documents(args.base)):
+    folders = list(gather_document_folders(args.base))
+    for folder in tqdm(folders):
+        doc = load_document(folder)
+
         existing_doc_id = find_existing(doc, existing_docs)
         if existing_doc_id:
             if not args.overwrite:

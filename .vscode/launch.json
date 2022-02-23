@@ -26,7 +26,15 @@
             "request": "launch",
             "program": "${workspaceFolder}\\upload_documents.py",
             "console": "integratedTerminal",
-            "args": ["../data/processed", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "138498"]
+            "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140135"]
+        }
+        {
+            "name": "Run Line Detection",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\run_line_detection.py",
+            "console": "integratedTerminal",
+            "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140135"]
         }
     ]
 }
