@@ -35,6 +35,14 @@
             "program": "${workspaceFolder}\\run_line_detection.py",
             "console": "integratedTerminal",
             "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140135"]
+        },
+        {
+            "name": "Run HTR",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\run_htr.py",
+            "console": "integratedTerminal",
+            "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140135"]
         }
     ]
 }
