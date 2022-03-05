@@ -42,7 +42,7 @@
             "request": "launch",
             "program": "${workspaceFolder}\\run_htr.py",
             "console": "integratedTerminal",
-            "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140168"]
+            "args": ["../data/processed/sample-year", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140168"]
         },
         {
             "name": "Check jobs",

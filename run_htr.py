@@ -17,7 +17,7 @@ def get_args():
     return args
     
 def htr_in_doc(doc: dict):
-    return doc['md']['nrOfLines'] > 0
+    return doc['md']['nrOfTranscribedLines'] > 0
 
 def find_existing(doc: Document, existing_docs: list[Any]) -> dict | None:
     for existing in existing_docs:
