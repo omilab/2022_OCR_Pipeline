@@ -2,10 +2,12 @@
 import json
 import logging
 from typing import Any
+from xml.etree import ElementTree
 
 from tqdm import tqdm
+from TkbsApiClient import TranskribusClient
 from TkbsDocument import Document
-from utilities import add_transkribus_args, gather_document_folders, init_tkbs_connection, load_document, setup_logging, setup_parser
+from utilities import add_transkribus_args, gather_document_folders, init_tkbs_connection, load_document, save_job_indication, setup_logging, setup_parser
 
 def get_args():
     parser = setup_parser()
@@ -22,6 +24,36 @@ def find_existing(doc: Document, existing_docs: list[Any]) -> dict | None:
         if existing['title'] == doc.title:
             return existing
     return None
+
+def run_line_detection(tkbs: TranskribusClient, collection_id: int, tkbs_doc_id: int, tkbs_doc: dict) -> int:
+    # Run segmentation
+    page_dict = {
+        "docList":
+        {
+            "docs":
+            [{
+                "docId": tkbs_doc_id,
+                "pageList":
+                {
+                    "pages":
+                    [ page['pageId'] for page in tkbs_doc['pageList']['pages']]
+                }
+            }]
+        }
+    }
+
+    response = tkbs.analyzeLayout(collection_id, json.dumps(page_dict), False, True)
+    logging.debug(response)
+    tree = ElementTree.fromstring(response)
+    jobElement = tree.find('*jobId')
+    if jobElement is None:
+        raise ValueError("No job id")
+    try:
+        jobid = int(jobElement.text or 'xxx')
+    except:
+        raise ValueError(f"Can't parse job id '{jobElement.text}'")
+    return jobid
+
 
 def main():
     args = get_args()
@@ -54,25 +86,10 @@ def main():
                 logging.info(f'Skipping {doc.title}, it has already been segmented')
                 skipped += 1
                 continue
-        
-        # Run segmentation
-        page_dict = {
-            "docList":
-            {
-                "docs":
-                [{
-                    "docId": tkbs_doc_id,
-                    "pageList":
-                    {
-                        "pages":
-                        [ page['pageId'] for page in tkbs_doc['pageList']['pages']]
-                    }
-                }]
-            }
-        }
+
         logging.info(f'Starting layout analysis on document {doc.title}')
-        response = tkbs.analyzeLayout(args.tkbs_collection_id, json.dumps(page_dict), False, True)
-        logging.debug(response)
+        job_id = run_line_detection(tkbs, args.tkbs_collection_id, tkbs_doc_id, tkbs_doc)
+        save_job_indication(folder, job_id)
         jobs_issued += 1
 
     print(f'Done, {jobs_issued} jobs issued, {missing} documents missing, {skipped} documents skipped')

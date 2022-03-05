@@ -2,8 +2,10 @@
 import json
 import logging
 from typing import Any
+from xml.etree import ElementTree
 
 from tqdm import tqdm
+from TkbsApiClient import TranskribusClient
 from TkbsDocument import Document
 from utilities import add_transkribus_args, gather_document_folders, init_tkbs_connection, load_document, save_job_indication, setup_logging, setup_parser
 
@@ -22,6 +24,24 @@ def find_existing(doc: Document, existing_docs: list[Any]) -> dict | None:
         if existing['title'] == doc.title:
             return existing
     return None
+
+def run_htr(tkbs: TranskribusClient, tkbs_htr_model_id: int, collection_id: int, tkbs_doc_id: int, tkbs_doc: dict) -> int:
+    json_dict = {
+                "docId": tkbs_doc_id,
+                "pageList":
+                {
+                    "pages":
+                    [ { 'pageId': page['pageId'] } for page in tkbs_doc['pageList']['pages']]
+                }
+    }
+    response = tkbs.htrRnnDecode(collection_id, tkbs_htr_model_id, "trainDataLanguageModel", tkbs_doc_id, json.dumps(json_dict), bDictTemp=False)
+    logging.debug(response)
+    try:
+        jobid = int(response or 'xxx')
+    except:
+        raise ValueError(f"Can't parse job id '{response}'")
+    return jobid
+
 
 def main():
     args = get_args()
@@ -56,19 +76,10 @@ def main():
                 continue
         
         # Run segmentation
-        json_dict = {
-                    "docId": tkbs_doc_id,
-                    "pageList":
-                    {
-                        "pages":
-                        [ page['pageId'] for page in tkbs_doc['pageList']['pages']]
-                    }
-        }
         logging.info(f'Starting HTR on document {doc.title}')
+        job_id = run_htr(tkbs, args.tkbs_htr_model_id, args.tkbs_collection_id, tkbs_doc_id, tkbs_doc)
+        save_job_indication(folder, job_id)
         # jobid = mytkbs.htrRnnDecode(collection, HTRmodelid, dictionaryName, mydocid, jstring, bDictTemp=False)
-
-        response = tkbs.htrRnnDecode(args.tkbs_collection_id, args.tkbs_htr_model_id, "trainDataLanguageModel", tkbs_doc_id, json.dumps(json_dict), bDictTemp=False)
-        logging.debug(response)
         jobs_issued += 1
 
     print(f'Done, {jobs_issued} jobs issued, {missing} documents missing, {skipped} documents skipped')

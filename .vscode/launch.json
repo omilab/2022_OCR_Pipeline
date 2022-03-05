@@ -26,7 +26,7 @@
             "request": "launch",
             "program": "${workspaceFolder}\\upload_documents.py",
             "console": "integratedTerminal",
-            "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140135"]
+            "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140168"]
         }
         {
             "name": "Run Line Detection",
@@ -34,7 +34,7 @@
             "request": "launch",
             "program": "${workspaceFolder}\\run_line_detection.py",
             "console": "integratedTerminal",
-            "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140135"]
+            "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140168"]
         },
         {
             "name": "Run HTR",
@@ -42,7 +42,15 @@
             "request": "launch",
             "program": "${workspaceFolder}\\run_htr.py",
             "console": "integratedTerminal",
-            "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140135"]
+            "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140168"]
+        },
+        {
+            "name": "Check jobs",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\check_jobs.py",
+            "console": "integratedTerminal",
+            "args": ["../data/processed/sample-year", "--tkbs-password", "Transkribus2020"]
         }
     ]
 }

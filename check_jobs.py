@@ -42,13 +42,15 @@ def main():
             else:
                 finished += 1
                 os.remove(job_file)
+        elif status == 'FAILED':
+            errors.append(job)
         else:
             print(job)
 
     print(f'Running jobs {running}, finished jobs {finished}, jobs with errors {len(errors)}')
     print('Errors are:')
     for error in errors:
-        print(json.dumps(error))
+        print(f"Job {error['jobId']}: {error['description']}")
         print()
         
 if __name__ == '__main__':
