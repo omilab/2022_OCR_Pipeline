@@ -7,7 +7,7 @@ from xml.etree import ElementTree
 from tqdm import tqdm
 from TkbsApiClient import TranskribusClient
 from TkbsDocument import Document
-from utilities import add_transkribus_args, gather_document_folders, init_tkbs_connection, load_document, save_job_indication, setup_logging, setup_parser
+from utilities import add_transkribus_args, find_existing, gather_document_folders, init_tkbs_connection, load_document, save_job_indication, setup_logging, setup_parser
 
 def get_args():
     parser = setup_parser()
@@ -19,11 +19,6 @@ def get_args():
 def htr_in_doc(doc: dict):
     return doc['md']['nrOfTranscribedLines'] > 0
 
-def find_existing(doc: Document, existing_docs: list[Any]) -> dict | None:
-    for existing in existing_docs:
-        if existing['title'] == doc.title:
-            return existing
-    return None
 
 def run_htr(tkbs: TranskribusClient, tkbs_htr_model_id: int, collection_id: int, tkbs_doc_id: int, tkbs_doc: dict) -> int:
     json_dict = {

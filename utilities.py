@@ -46,6 +46,13 @@ def save_job_indication(folder: str, job_id: int):
         json.dump(job_dict, fp)
 
 
+def find_existing(doc: Document, existing_docs: list[Any]) -> dict | None:
+    for existing in existing_docs:
+        if existing['title'] == doc.title:
+            return existing
+    return None
+
+
 # class JobStatus:
 #     # This is a more elaborate class for tracking job statuses. We'll make it work and use it only if the pipeline is
 #     # going to work after we finish the current 9 newspapers. No point in investing time if we only run the 9 papers through the pipeline

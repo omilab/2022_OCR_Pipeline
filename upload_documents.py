@@ -10,7 +10,7 @@ from xml.etree import ElementTree
 from tqdm import tqdm
 from TkbsApiClient import TranskribusClient
 from TkbsDocument import Document
-from utilities import add_transkribus_args, gather_document_folders, init_tkbs_connection, load_document, save_job_indication, setup_logging, setup_parser
+from utilities import add_transkribus_args, find_existing, gather_document_folders, init_tkbs_connection, load_document, save_job_indication, setup_logging, setup_parser
 
 
 def get_args() -> Any:
@@ -57,16 +57,9 @@ def upload_document(tkbs: TranskribusClient, args: argparse.Namespace, doc_dir: 
         jobid = int(jobElement.text or 'xxx')
     except:
         raise ValueError(f"Can't parse job id '{jobElement.text}'")
-    jobid = jobElement.text
+    # jobid = jobElement.text
 
     return docid, jobid
-
-def find_existing(doc: Document, existing_docs: list[Any]) -> int | None:
-    for existing in existing_docs:
-        if existing['title'] == doc.title:
-            return int(existing['docId'])
-    return None
-
 
 def main():
     args = get_args()
@@ -86,15 +79,15 @@ def main():
     for folder in tqdm(folders):
         doc = load_document(folder)
 
-        existing_doc_id = find_existing(doc, existing_docs)
-        if existing_doc_id:
+        existing_doc = find_existing(doc, existing_docs)
+        if existing_doc:
             if not args.overwrite:
                 logging.info(f'Skipping {doc.title}, it already exists')
                 skipped += 1
                 continue
             else:
                 logging.info(f'Deleting document {doc.title} before uploading it again')
-                tkbs.deleteDocument(args.tkbs_collection_id, existing_doc_id)
+                tkbs.deleteDocument(args.tkbs_collection_id, existing_doc['docId'])
 
         logging.info(f'Uploading document {doc.title}')
         doc_id, job_id = upload_document(tkbs, args, os.path.join(folder, 'legacy_output'), doc)

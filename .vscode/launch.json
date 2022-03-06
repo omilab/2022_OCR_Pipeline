@@ -27,7 +27,7 @@
             "program": "${workspaceFolder}\\upload_documents.py",
             "console": "integratedTerminal",
             "args": ["../data/processed/sample-year", "--overwrite", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140168"]
-        }
+        },
         {
             "name": "Run Line Detection",
             "type": "python",
@@ -43,6 +43,14 @@
             "program": "${workspaceFolder}\\run_htr.py",
             "console": "integratedTerminal",
             "args": ["../data/processed/sample-year", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140168"]
+        },
+        {
+            "name": "Download Results",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\download_results.py",
+            "console": "integratedTerminal",
+            "args": ["../data/processed/sample-year", "--verbose", "--tkbs-password", "Transkribus2020", "--tkbs-collection-id", "140168", "--overwrite"]
         },
         {
             "name": "Check jobs",
