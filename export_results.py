@@ -24,12 +24,12 @@ def export(input_folder: str, output_folder: str, formats: list[str]):
         os.makedirs(dir, exist_ok=True)
         return dir
 
-    logging.info(f'Exporting {input_folder} to {output_folder}')
-
     tkbs_folder = os.path.join(input_folder, 'transkribus_output')
     if not os.path.exists(tkbs_folder):
-        raise ValueError(f"Can't export {input_folder} - no transkribus_output found")
+        logging.debug(f'No transkribus output for {input_folder} - skipping')
+        return False
 
+    logging.info(f'Exporting {input_folder} to {output_folder}')
     p = Document()
     p.load_legacy_data(input_folder)
     p.load_tkbs_data(tkbs_folder) #FIX
@@ -38,19 +38,27 @@ def export(input_folder: str, output_folder: str, formats: list[str]):
 
     if 'tei' in formats:
         teifolder = prep_dir(os.path.join(output_folder, 'tei'))
+        logging.debug('Exportint to tei')
         p.export_tei(teifolder)
 
     if 'txt' in formats:
         plaintextfolder = prep_dir(os.path.join(output_folder, 'plaintext'))
+        logging.debug('Exporting plaintext')
         p.export_plaintext(plaintextfolder)
         plaintextfolder_byarticle = prep_dir(os.path.join(output_folder, 'plaintext_by_article'))
+        logging.debug('Exporting plaintext by article')
         p.export_plaintext_articles(plaintextfolder_byarticle)
 
     if 'csv' in formats:
         csvfolder_byregion = prep_dir(os.path.join(output_folder, 'csv_by_region'))
+        logging.debug('Exporting csv by region')
         p.export_csv_regions(csvfolder_byregion)
         csvfolder_byarticle = prep_dir(os.path.join(output_folder, 'csv_by_article'))
+        logging.debug('Exporting csv by article')
         p.export_csv_articles(csvfolder_byarticle)
+
+    return True
+
 
 def get_output_folder(base_folder: str, input_folder: str, output_folder_prefix: str):
     if not output_folder_prefix:
@@ -91,8 +99,10 @@ def main():
                 continue
 
         os.makedirs(output_folder)
-        export(input_folder, output_folder, args.format)
-        exported += 1 
+        if export(input_folder, output_folder, args.format):
+            exported += 1 
+        else:
+            skipped += 1
 
     print(f'Exported {exported}, skipped {skipped}')
     logging.info(f'Exported {exported}, skipped {skipped}')
