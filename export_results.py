@@ -82,10 +82,9 @@ def main():
     print(f'Exporting Transkribus results to ' + args.output_dir if args.output_dir else './transkribus_export')
     logging.info(f'Exporting Transkribus results to ' + args.output_dir if args.output_dir else './transkribus_export')
 
-    exported = skipped = 0
-    folders = list(gather_document_folders(args.base))
+    exported = skipped = errors = 0
 
-    base_dir_parts = os.path.normpath(args.base).split(os.sep)
+    folders = list(gather_document_folders(args.base))
     for input_folder in tqdm(folders):
         output_folder = get_output_folder(args.base, input_folder, args.output_dir)
 
@@ -99,13 +98,17 @@ def main():
                 continue
 
         os.makedirs(output_folder)
-        if export(input_folder, output_folder, args.format):
-            exported += 1 
-        else:
-            skipped += 1
+        try:
+            if export(input_folder, output_folder, args.format):
+                exported += 1 
+            else:
+                skipped += 1
+        except Exception as e:
+            logging.exception(f"Can't process {input_folder}")
+            errors += 1
 
-    print(f'Exported {exported}, skipped {skipped}')
-    logging.info(f'Exported {exported}, skipped {skipped}')
+    print(f'Exported {exported}, skipped {skipped}, errors {errors}')
+    logging.info(f'Exported {exported}, skipped {skipped}, errors {errors}')
 
 if __name__ == '__main__':
     main()
