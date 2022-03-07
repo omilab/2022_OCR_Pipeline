@@ -106,6 +106,10 @@ def main():
         except Exception as e:
             logging.exception(f"Can't process {input_folder}")
             errors += 1
+            try:  # Remove output folder, so that next time we try the same input again
+                shutil.rmtree(output_folder)
+            except:
+                pass
 
     print(f'Exported {exported}, skipped {skipped}, errors {errors}')
     logging.info(f'Exported {exported}, skipped {skipped}, errors {errors}')
