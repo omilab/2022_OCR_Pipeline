@@ -59,6 +59,14 @@
             "program": "${workspaceFolder}\\check_jobs.py",
             "console": "integratedTerminal",
             "args": ["../data/processed/sample-year", "--tkbs-password", "Transkribus2020"]
+        },
+        {
+            "name": "Export results",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\export_results.py",
+            "console": "integratedTerminal",
+            "args": ["../data/processed/sample-year", "--format", "csv", "tei", "txt", "--overwrite", "--output-dir", "../data/output/sample-year"]
         }
     ]
 }

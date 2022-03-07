@@ -3,27 +3,34 @@
 HOP is a tool that can massively handle legacy products of various OCR systems, such as Olive Software's system products and bring more accurate OCR using [Transkribus](https://transkribus.eu/Transkribus/). It is a pipeline that transforms PRXML files via Transkribus into a research corpus,  and deals with the challenge of improving the OCR without losing the valuable work that was done hitherto to analyze the layout and content structure of the newspapers. 
 for this we created an workflow which converts the legacy format to an open format, on which the improved text recognition technologies can run to produce improved output that meets the threshold and requirements of text analytical research.
 
-The pipeline consists of three subsequent but independent stages: 
-- In part one, the pipeline gets PRXML files and images as input, and converts their region segmentation data  into the open PAGE.XML format (see also road map 1 below).
-- The second part uploads the files to Transkribus using its API. In Trankribus, line detection and text recognition are preformed and the resulting product is a better OCR text, framed in the original text regions.
-- The third part takes Transkribus' output and migrates it to several formats that facilitate text analytical methods: plain text files, XML-TEI, and tabular data in TSV files (see also road map 2 below).
-
-
 ## Getting started
 
 ### Prerequisites
-- Python 3 or Python 2.7
+- Python 3.10
 - Username in Transkribus
 - HTR model in Transkribus (for Hebrew 19th century press, we used 'OMILab')
 - Layout analysis line detection model (e.g. Preset)
 
 ##### Notes on using Transkribus' services:
 Around September 2020 Transkribus  will be available as payed service, in the framework of the READ Coop:  https://read.transkribus.eu/coop/. 
-
-
-
 ## Tutorial
-It should be noted that the parts are not interdependent. Although they are part of one pipeline, only the relevant stages can be used without any particular problem.
+TODO: Rewrite tutorial to correspond to the new pipeline methodology
+### stage 1 - unzip the Document.zip files
+### stage 2 - Convert olice input to transkribus
+
+### stage 3 - Upload to Transkribus
+
+### stage 4 - Run line detection on Transkribus
+
+### stage 5 - Check job output, to make sure everything is OK
+
+### stage 6 - Run HTR on Transkribus
+
+### stage 6 - Check job output, making sure everything is OK
+
+### stage 7 - Download transkribus results
+
+### stage 8 - Export transkribus output to various formats
 
 ### stage 1 - Legacy format to Transkribus format converter
 This script allows the user to convert directories from the legacy format into the PAGE.XML files that can be uploaded later into Transkribus or used in another way.
