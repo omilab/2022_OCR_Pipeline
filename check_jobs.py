@@ -34,7 +34,7 @@ def main():
         job = tkbs.getJobStatus(job_id)
         
         status = job['state']
-        if status in ('RUNNING', 'CREATED'):
+        if status in ('RUNNING', 'CREATED', 'WAITING'):
             running += 1
         elif status == 'FINISHED':
             if not job['success']:
