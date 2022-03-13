@@ -427,7 +427,7 @@ class Document:
             with open(os.path.join(outdir, self.title + "_plaintext.txt"), mode = 'w', encoding = self.xmlcode) as o:
                 for a in self.articles.values():
                     for r in a.article_regions.values():
-                        o.write(r.text)
+                        print(r.text, file=o)
         except Exception as e:
             print("ERROR in export_plaintext " + outdir)
             print (e)
@@ -561,7 +561,7 @@ class Document:
             for a in self.articles.keys():
                 with open(os.path.join(outdir, self.title + "_" + self.article_types[a] + "_" + str(a) + "_plaintext.txt"), mode = 'w', encoding = self.xmlcode) as o:
                     for r in self.articles[a].article_regions.values():
-                        o.write(r.text)
+                        print(r.text, file=o)
         except Exception as e:
             print("ERROR in export_plaintext " + outdir)
             print (e)

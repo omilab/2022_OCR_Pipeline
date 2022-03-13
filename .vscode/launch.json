@@ -66,7 +66,7 @@
             "request": "launch",
             "program": "${workspaceFolder}\\export_results.py",
             "console": "integratedTerminal",
-            "args": ["../data/processed/sample-year", "--format", "csv", "tei", "txt", "--overwrite", "--output-dir", "../data/output/sample-year"]
+            "args": ["../data/processed/HACARMEL", "--format", "txt", "--overwrite", "--output-dir", "../data/output/HACARMEL"]
         }
     ]
 }
