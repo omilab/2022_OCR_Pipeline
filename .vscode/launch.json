@@ -67,6 +67,14 @@
             "program": "${workspaceFolder}\\export_results.py",
             "console": "integratedTerminal",
             "args": ["../data/processed/HACARMEL", "--format", "txt", "--overwrite", "--output-dir", "../data/output/HACARMEL"]
+        },
+        {
+            "name": "Relocate Output",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\relocate_old_output.py",
+            "console": "integratedTerminal",
+            "args": ["../data/original/HALEVANON", "--old-output-dir", "../data/transkribus_output", "--newspaper-prefix", "HLB"]
         }
     ]
 }

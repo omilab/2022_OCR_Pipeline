@@ -1,6 +1,7 @@
 
 import json
 import logging
+import os
 from typing import Any
 from xml.etree import ElementTree
 
@@ -78,6 +79,13 @@ def main():
         if lines_in_doc(tkbs_doc):
             if not args.overwrite:
                 logging.info(f'Skipping {doc.title}, it has already been segmented')
+                skipped += 1
+                continue
+
+        output_folder = os.path.join(folder, 'transkribus_output')
+        if os.path.exists(output_folder):
+            if not args.overwrite:
+                logging.info(f'Skipping {doc.title}, it already has a transkribus output')
                 skipped += 1
                 continue
 
