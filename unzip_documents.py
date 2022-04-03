@@ -29,6 +29,7 @@ def unzip(zip, dest):
 
 def main():
     parser = setup_parser()
+    parser.add_argument('--remove-zip', action='store_true', default=False, help='Delete ZIP file after unzipping')
     args = parser.parse_args()
     setup_logging(args)
 
@@ -51,6 +52,9 @@ def main():
         logging.info(f"Unzipping from {zip_path} to {folder_path}")
         os.makedirs(folder_path, exist_ok=True)
         unzip(zip_path, folder_path)
+        if args.remove_zip:
+            logging.debug("Removing ZIP file " + zip_path)
+            os.remove(zip_path)
         unzipped += 1
 
     print(f'Unziped {unzipped} files, skipped {skipped} folders')
