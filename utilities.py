@@ -97,8 +97,8 @@ def find_existing(doc: Document, existing_docs: list[Any]) -> dict | None:
 
 
 # Gather all documents, returning a list of (base_dir, folder)
-def gather_document_folders(base: str):
-    folders = glob.glob(os.path.join(base, '**', 'legacy_output'), recursive=True)
+def gather_document_folders(base: str, folder='legacy_output'):
+    folders = glob.glob(os.path.join(base, '**', folder), recursive=True)
     folders = [os.path.dirname(f) for f in folders]
 
     for folder in folders:

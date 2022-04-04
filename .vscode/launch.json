@@ -66,7 +66,7 @@
             "request": "launch",
             "program": "${workspaceFolder}\\export_results.py",
             "console": "integratedTerminal",
-            "args": ["../data/processed/HACARMEL", "--format", "txt", "--overwrite", "--output-dir", "../data/output/HACARMEL"]
+            "args": ["../data/processed/HAMELIZ", "--format", "txt", "--overwrite", "--output-dir", "../data/output/HAMELIZ"]
         },
         {
             "name": "Relocate Output",

@@ -84,7 +84,7 @@ def main():
 
     exported = skipped = errors = 0
 
-    folders = list(gather_document_folders(args.base))
+    folders = list(gather_document_folders(args.base, 'transkribus_output'))
     for input_folder in tqdm(folders):
         output_folder = get_output_folder(args.base, input_folder, args.output_dir)
 
