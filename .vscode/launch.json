@@ -21,6 +21,14 @@
             "args": ["../data/processed", "--overwrite", "--verbose"]
         },
         {
+            "name": "remove-empty-transkribus",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\remove-empty-transkribus.py",
+            "console": "integratedTerminal",
+            "args": ["../data/HAMELITZ-partial", "--overwrite", "--verbose"]
+        },
+        {
             "name": "Upload to Transkribus",
             "type": "python",
             "request": "launch",
