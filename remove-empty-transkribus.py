@@ -10,17 +10,16 @@ import xml.etree.ElementTree as ET
 def is_text_exists(tkbs_folder):
     for filename in os.listdir(tkbs_folder):
         if filename.endswith(".xml") or filename.endswith(".pxml"):
-            
-            tree = ET.parse(os.path.join(tkbs_folder,filename))
-            root = tree.getroot()
-
-            data_string = ET.tostring(root, encoding="unicode", method="html")
-            print(data_string)
-
-            if 'TextEquiv' in data_string:
-                # check if it contains something
-                return True
-           
+            tree = ET.ElementTree(file=os.path.join(tkbs_folder,filename))
+            for myelement in tree.iterfind('*/*/*'):
+                if myelement.tag.endswith("TextLine"):
+                   
+                    for mychild in myelement.iter():
+                        if mychild.tag.endswith("TextEquiv"):
+                            for txt in mychild.iter():
+                                if myelement.tag.strip != '':
+                                    return True
+                    
     return False
 
 def main():
