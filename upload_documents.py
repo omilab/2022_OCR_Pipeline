@@ -72,7 +72,7 @@ def main():
     logging.debug('Loading existing documents from Transkribus')
     existing_docs = tkbs.listDocsByCollectionId(args.tkbs_collection_id)
 
-    uploaded = skipped = 0
+    uploaded = skipped = error = 0
 
     print(f'Uploading documents from {args.base} to Transkribus collection {args.tkbs_collection_id}')
     folders = list(gather_document_folders(args.base))
@@ -90,11 +90,15 @@ def main():
                 tkbs.deleteDocument(args.tkbs_collection_id, existing_doc['docId'])
 
         logging.info(f'Uploading document {doc.title}')
-        doc_id, job_id = upload_document(tkbs, args, os.path.join(folder, 'legacy_output'), doc)
-        save_job_indication(folder, job_id)
-        uploaded += 1
+        try:
+            doc_id, job_id = upload_document(tkbs, args, os.path.join(folder, 'legacy_output'), doc)
+            save_job_indication(folder, job_id)
+            uploaded += 1
+        except Exception as e:
+            logging.exception("Can't upload document")
+            error += 1
 
-    print(f"Done, uploaded {uploaded} documents, skipped {skipped}")
+    print(f"Done, uploaded {uploaded} documents, skipped {skipped}, error {error}")
 
 if __name__ == '__main__':
     main()

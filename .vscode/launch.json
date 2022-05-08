@@ -18,7 +18,7 @@
             "request": "launch",
             "program": "${workspaceFolder}\\convert_olive_to_tkbs.py",
             "console": "integratedTerminal",
-            "args": ["../data/processed", "--overwrite", "--verbose"]
+            "args": ["../data/processed/HAVAZELET", "--overwrite", "--verbose"]
         },
         {
             "name": "remove-empty-transkribus",
