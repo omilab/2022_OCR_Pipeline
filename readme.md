@@ -7,30 +7,113 @@ for this we created an workflow which converts the legacy format to an open form
 
 ### Prerequisites
 - Python 3.10
-- Username in Transkribus
+- Username and password of your Transkribus account
 - HTR model in Transkribus (for Hebrew 19th century press, we used 'OMILab')
 - Layout analysis line detection model (e.g. Preset)
 
-##### Notes on using Transkribus' services:
-Around September 2020 Transkribus  will be available as payed service, in the framework of the READ Coop:  https://read.transkribus.eu/coop/. 
-## Tutorial
-TODO: Rewrite tutorial to correspond to the new pipeline methodology
+### Setting up the code
+You need to create a Python virtual environment. We usually place it in `env` under the repository's root.
+Once created, activate the environment (`source env/bin/activate` on Linux and Mac, or `env\scripts\activate.ps1` on Windows) and install the required packages:
+
+```
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### Setting up your data
+The current pipeline works with Olive Software exported data. It was tested with data exported by the NLI, which we received in the following directory structure
+
+- Publication Root Folder
+  - Publication Year
+    - Publication Month
+      - Publication Day
+        - PDF file of Publication
+        - Document.zip - containing information about specific articles
+        - TOC.xml - table of contents of the publication
+
+The zip file contains the following:
+        - Document (the content of the zip file)
+          - Page  A Folder for every  page in the issue that includes:
+            - PgXXX.xml (where XXX is the page number; this file include a strcuctural inforamtion about this page)
+            - ArYYY.xml for every article in this page (where YYY is the article number like that appears in the PgXXX.xml file; this file include a strcuctural inforamtion about this article)
+            - AdYYY.xml for every advertisement in this page (where YYY is the advertisement number like that appears in the PgXXX.xml file; this file include a strcuctural inforamtion about this advertisement)
+            - Img folder that includes images of all the objects in the page together and alone.
+
+
+The pipeline expects the data to be in this layout.
+
+Note: The pipeline makes changes to the data in the folder - make sure you run it on a copy of the data. You do not want to lose data if we have a bug.
+
+## The pipeline scripts
+The pipeline consists of multiple Python scripts that you need to run one after the other. These scripts share some common parameters:
+
+    * root publication folder - the location of the data the script needs to process
+    * --help - show helpful information about the script.
+    * --log-file - this file will contain a log of the run (defaults to `pipeline.log`)
+    * --verbose - write more information to the log file
+    * --overwrite - overwrite the output of a previous run.
+
+This last flag, `--overwrite` deserves some attention. Some of the pipeline stages can take a while. Almost all the scripts know how to handle being stopped in the middle (due to a network error, power outage or someone accidentally rebooting your computer) - they try to pick up from where they have stopped. However, you sometimes really do want them to start over. For this, add the `--overwrite` flag - the scripts will try to delete the work of their last run and start over.
+
+Some scripts interact with Transkribus, those need the following arguments:
+
+    * --tkbs-user - your username at Transkribus (default - the OMILab's user name)
+    * --tkbs-server - the URL for Transkribus (default - their existing URL)
+    * --tkbs-password - your Transkribs password (Ah! I see what you tried to do there! There is no default)
+    * --tkbs-collection-id - the Transkribus collection ID for the publication (no default)
+## Processing a publication
+The pipeline works on one publication at a time. Make sure you know the path to your Publication Root Folder.
+### Setting up a Transkribus collection
+The pipeline expects each publication to be uploaded to a single Transkribus collection. For this you will need to create the collection. You can either do that manually on Transkribus, and keep note of the collection ID, or run your handy script that manages Transkribus collections:
+
+    python tkbs-collections.py create <collection-name> --tkbs-user <username> --tkbs-password <password>
+
+This command will create a collection and print its ID. You need this collection ID for later.
+
 ### stage 1 - unzip the Document.zip files
-### stage 2 - Convert olice input to transkribus
+
+    python unzip_documents.py <publication-root-folder>
+### stage 2 - Convert olice input to transkribus format
+
+    python convert_olive_to_tkbs <publication-root-folder>
 
 ### stage 3 - Upload to Transkribus
 
+    python upload_documents <publication-root-folder>  --tkbs-collection-id <collection-id> --tkbs-user ... --tkbs-password ...
+
 ### stage 4 - Run line detection on Transkribus
+
+    python run_line_detection.py <publication-root-folder>  --tkbs-collection-id <collection-id> --tkbs-user ... --tkbs-password ...
 
 ### stage 5 - Check job output, to make sure everything is OK
 
+Line detection and OCR is handled by Transkribus in Jobs. These jobs can take a while to finish. You can check the job status on the Transkribus website, or run
+
+    python check_jobs.py publication-root-folder> --tkbs-user ... --tkbs-password ...
+
+Only once all the jobs have finished can you proceed to the next stage. Line detecton jobs are usually very quick on Transkribus.
 ### stage 6 - Run HTR on Transkribus
+
+    python run_htr.py <publication-root-folder>  --tkbs-collection-id <collection-id> --tkbs-user ... --tkbs-password ...
 
 ### stage 6 - Check job output, making sure everything is OK
 
+This is identical to stage 4, it can only take longer, sometimes a lot longer - depending on the number of jobs and the load on the Transkribus servers
+
+    python check_jobs.py publication-root-folder> --tkbs-user ... --tkbs-password ...
+
+Once all the jobs have finished you can move on
 ### stage 7 - Download transkribus results
 
+    python download_results.py <publication-root-folder>  --tkbs-collection-id <collection-id> --tkbs-user ... --tkbs-password ...
+
 ### stage 8 - Export transkribus output to various formats
+
+Now we have everything we need to export the results. The pipeline supports exporting to TEI, CSV and plain text files. 
+
+    python export_results.py <publication-root-folder> --output-dir <output directory> --format <formats>
+
+The formats can be any of `csv`, `tei`, `txt`
 
 ### stage 1 - Legacy format to Transkribus format converter
 This script allows the user to convert directories from the legacy format into the PAGE.XML files that can be uploaded later into Transkribus or used in another way.
