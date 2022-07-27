@@ -6,7 +6,7 @@ import argparse
 import glob
 import json
 import logging
-from typing import Any
+from typing import Any, Dict, List, Union
 import os
 
 from TkbsApiClient import TranskribusClient
@@ -46,7 +46,7 @@ def save_job_indication(folder: str, job_id: int):
         json.dump(job_dict, fp)
 
 
-def find_existing(doc: Document, existing_docs: list[Any]) -> dict | None:
+def find_existing(doc: Document, existing_docs: List[Any]) -> Union[Dict, None]:
     for existing in existing_docs:
         if existing['title'] == doc.title:
             return existing

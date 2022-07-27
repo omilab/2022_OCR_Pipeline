@@ -3,7 +3,7 @@
 import logging
 import os
 import shutil
-from typing import Any
+from typing import Any, List
 
 from tqdm import tqdm
 from TkbsDocument import Document
@@ -19,7 +19,7 @@ def get_args() -> Any:
 
     return args
 
-def export(input_folder: str, output_folder: str, formats: list[str]):
+def export(input_folder: str, output_folder: str, formats: List[str]):
     def prep_dir(dir):
         os.makedirs(dir, exist_ok=True)
         return dir

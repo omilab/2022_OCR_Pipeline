@@ -4,7 +4,7 @@ import argparse
 import glob
 import logging
 import os
-from typing import Any
+from typing import Any, Tuple
 from xml.etree import ElementTree
 
 from tqdm import tqdm
@@ -22,7 +22,7 @@ def get_args() -> Any:
     return args
 
 # Upload Transkribus document, returning the document id and job id
-def upload_document(tkbs: TranskribusClient, args: argparse.Namespace, doc_dir: str, doc: Document) -> tuple[int, int]:
+def upload_document(tkbs: TranskribusClient, args: argparse.Namespace, doc_dir: str, doc: Document) -> Tuple[int, int]:
     ImgObjects = {}
     pageImages = doc.img_names_by_pgnum()
     pageXmls = doc.pxml_names_by_pgnum()

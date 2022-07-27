@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import shutil
-from typing import Any
+from typing import Any, Dict, Union
 import xml.etree.cElementTree as ET
 
 from tqdm import tqdm
@@ -21,7 +21,7 @@ def get_args() -> Any:
 
     return args
 
-def download(tkbs: TranskribusClient, collection_id: int, doc_id: int, folder: str, metafilename: str) -> dict | None:
+def download(tkbs: TranskribusClient, collection_id: int, doc_id: int, folder: str, metafilename: str) -> Union[Dict, None]:
     response = tkbs.download_document(collection_id, doc_id, folder)
     pages = len(response[1]) # type: ignore
     if pages > 0:
@@ -43,7 +43,7 @@ def delete_garbage_text(pgfile: str, garbage_line_width: int):
                     textchild = mychild
                 if mychild.tag.endswith("Baseline"):
                     points = mychild.attrib.get('points')
-                    points_list = points.split(" ")
+                    points_list = points.split(" ") if points else []
                     smallpoint = int(points_list[0].split(",")[0])
                     bigpoint = int(points_list[(len(points_list) - 1)].split(",")[0])
                     linewidth = bigpoint - smallpoint
