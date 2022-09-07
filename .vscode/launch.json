@@ -74,7 +74,7 @@
             "request": "launch",
             "program": "${workspaceFolder}\\export_results.py",
             "console": "integratedTerminal",
-            "args": ["../data/processed/HAMELIZ", "--format", "txt", "--overwrite", "--output-dir", "../data/output/HAMELIZ"]
+            "args": ["../data/pipeline/HAZFIRAH/1890/06/06", "--format", "txt", "--overwrite", "--output-dir", "../data/output/HAZFIRAH"]
         },
         {
             "name": "Relocate Output",
