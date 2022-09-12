@@ -421,12 +421,42 @@ class Document:
             ids[pnumber] = pid
         return ids
 
+    def get_ordered_article_region_keys(self, article_id):
+        # Returns a list of article regions, and the correct order.
+        # The order is determined by the INDEX_IN_TOC field of the entities in the Olive TOC.xml file.
+        # Region IDs look like ArXXXXXYY - Where ArXXXXX is an Olive entity, and YY is a subentity number.
+        #
+        # To get the order of the regions, we generate a key for each region, which is
+        # entity[ArXXXXX].order * 100 + int(YY)
+        # And we sort in ascending order.
+
+        tkbs = self.articles[article_id]
+        legacy = self.legacy_articles[article_id]
+
+        def region_order(region_id):
+            region_id = tkbs.article_regions[region_id].id
+            entity = legacy.entities[region_id[:7]].order
+            subentity = int(region_id[-2:])
+
+            return entity * 100 + subentity
+
+        region_keys = tkbs.article_regions.keys()
+        ordered_region_keys = sorted(region_keys, key=region_order)
+
+        return ordered_region_keys
+
+    def get_ordered_article_regions(self, article_id):
+        ordered_keys = self.get_ordered_article_region_keys(article_id)
+        tkbs = self.articles[article_id]
+        return [tkbs.article_regions[k] for k in ordered_keys]
+
+
     def export_plaintext(self, outdir):
         try:
             self.prep_dir(outdir)
             with open(os.path.join(outdir, self.title + "_plaintext.txt"), mode = 'w', encoding = self.xmlcode) as o:
-                for a in self.articles.values():
-                    for r in a.article_regions.values():
+                for a in self.articles.keys():
+                    for r in self.get_ordered_article_regions(a):
                         print(r.text, file=o)
         except Exception as e:
             print("ERROR in export_plaintext " + outdir)
@@ -477,7 +507,8 @@ class Document:
                         eid = e.attrib["ID"]
                         eentry = e.attrib["FIRST_TOC_ENTRY_ID"]
                         if eentry in self.legacy_articles.keys():
-                            self.legacy_articles[eentry].entities[eid] = legacy_entity(eid)
+                            index = int(e.attrib["INDEX_IN_DOC"])
+                            self.legacy_articles[eentry].entities[eid] = legacy_entity(eid, index)
                         else:
                             print("Warning TOC ENTRY ID " + eentry + " MISSING in " + metafile)
 
@@ -493,7 +524,7 @@ class Document:
                 for a in self.articles.keys():
                     aid = self.articles[a].id
                     header = self.articles[a].header
-                    for r in self.articles[a].article_regions.keys():
+                    for r in self.get_ordered_article_regions(a):
                         rid = self.articles[a].article_regions[r].id
                         pid = self.articles[a].article_regions[r].pagenumber
                         for l in self.articles[a].article_regions[r].lines.keys():
@@ -518,7 +549,7 @@ class Document:
                 for a in self.articles.keys():
                     aid = self.articles[a].id
                     header = self.articles[a].header
-                    for r in self.articles[a].article_regions.keys():
+                    for r in self.get_ordered_article_region_keys(a):
                         region_text = ""
                         rid = self.articles[a].article_regions[r].id
                         pid = self.articles[a].article_regions[r].pagenumber
@@ -545,7 +576,7 @@ class Document:
                     articletext = ""
                     aid = self.title + "_" + self.article_types[a] + "_" + self.articles[a].id
                     header = self.articles[a].header
-                    for r in self.articles[a].article_regions.keys():
+                    for r in self.get_ordered_article_region_keys(a):
                         for l in self.articles[a].article_regions[r].lines.keys():
                             articletext = " ".join([articletext, self.articles[a].article_regions[r].lines[l].text])
                     writer.writerow({'article_id': str(aid), 'headline': header, 'text': articletext})
@@ -560,7 +591,7 @@ class Document:
             self.prep_dir(outdir)
             for a in self.articles.keys():
                 with open(os.path.join(outdir, self.title + "_" + self.article_types[a] + "_" + str(a) + "_plaintext.txt"), mode = 'w', encoding = self.xmlcode) as o:
-                    for r in self.articles[a].article_regions.values():
+                    for r in self.get_ordered_article_regions(a):
                         print(r.text, file=o)
         except Exception as e:
             print("ERROR in export_plaintext " + outdir)
@@ -620,7 +651,7 @@ class Document:
                     current_page = 1
                 divs[a_id] = ET.SubElement(body, "div", attrib = {"xml:id": a_id})
                 heads[a_id] = ET.SubElement(divs[a_id], "head").text = self.articles[a].header #TBD
-                for r in self.articles[a].article_regions:
+                for r in self.get_ordered_article_region_keys(a):
                     r_id = self.articles[a].article_regions[r].id
                     r_page = self.articles[a].article_regions[r].pagenumber
                     if current_page != r_page:
@@ -730,8 +761,9 @@ class legacy_article:
 
 class legacy_entity:
 
-    def __init__(self, entity_id):
+    def __init__(self, entity_id, order):
         self.id = entity_id
+        self.order = order
 
 def locate_legacy(doc, topdir):
     bytespub = bytes(doc, 'utf-8')
