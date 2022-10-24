@@ -234,6 +234,8 @@ class Document:
     #parse Pg00x.xml file
     def parse_legacy_page_data(self, PgCount, resolution_factor):
         try:
+            # TODO: Pass the page image file instead of resolution factor, and calculate the factor from the image
+            # Since the image is no longer taken from Document.zip but rather extracted directly from the PDF
             tree = etree.parse(self.PagesXmlName[PgCount])
             dir_path = (os.path.dirname(self.PagesXmlName[PgCount])) # dir of page file
             

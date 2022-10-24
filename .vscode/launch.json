@@ -13,12 +13,20 @@
             "args": ["../data/processed", "--overwrite", "--verbose"]
         },
         {
+            "name": "Extract PDF Images",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\extract-pdf-images.py",
+            "console": "integratedTerminal",
+            "args": ["../data", "--overwrite", "--verbose"]
+        }
+        {
             "name": "Olive to TKBS",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\convert_olive_to_tkbs.py",
             "console": "integratedTerminal",
-            "args": ["../data/processed/HAVAZELET", "--overwrite", "--verbose"]
+            "args": ["../data", "--overwrite", "--verbose"]
         },
         {
             "name": "remove-empty-transkribus",
