@@ -11,6 +11,7 @@ from shutil import copyfile
 import os, sys, json, csv, mmap
 import xml.etree.ElementTree as ET
 import zipfile
+from PIL import Image
 
 
 class Document:
@@ -135,6 +136,25 @@ class Document:
             atype = a.attrib["PRIM_ID_REF"][0:2]
             self.article_types[aid] = atype
     
+    def utilize_full_resolution_image(self, inputdir, pgNum):
+        def load_image_res(img_file):
+            img = Image.open(img_file)
+            return img.width, img.height
+
+        # Use the full resolution image if it exists.
+        # Adjust the resolution factor accordingally.
+        full_res_name = os.path.join(inputdir, 'pdf-images', f"FullPg{int(pgNum):02}.jpeg")
+        if not os.path.exists(full_res_name):
+            return  # No full resolution image
+
+        existing_image_res = load_image_res(self.PagesImgName[pgNum])
+        full_image_res = load_image_res(full_res_name)
+        factorX = full_image_res[0] / existing_image_res[0]  # PDF images maintain their aspect ratio, one factor is enough
+ 
+        # Update the image name and resolution factor
+        self.PagesImgName[pgNum] = full_res_name
+        self.PagesResolutionFactor[pgNum] *= factorX
+
     def load_legacy_data(self, inputdir):
         try:
             #---- READING TOC FILE ---------------------#
@@ -165,6 +185,7 @@ class Document:
                 pgNum = pgElement.get("PAGE_NO")
                 pgId = pgElement.get("ID")
                 self.pxmlOutname[pgNum] = pgId + "_" + self.PagesImgResolutions[str(pgNum)] + ".pxml"
+
                 self.PagesImgName[pgNum] = os.path.join(inputdir, self.docdir, pgNum, self.inputdir_images, pgId + "_" + self.PagesImgResolutions[str(pgNum)] + ".png")
                 if os.path.exists(self.PagesImgName[pgNum]):
                     self.PagesResolutionFactor[pgNum] = 1
@@ -172,6 +193,8 @@ class Document:
                     self.PagesResolutionFactor[pgNum] = float(self.max_doc_resolution) / float(self.PagesImgResolutions[str(pgNum)])
                     self.PagesImgName[pgNum] = os.path.join(inputdir, self.docdir, pgNum, self.inputdir_images, pgId + "_" + str(self.max_doc_resolution) + ".png")
                     self.pxmlOutname[pgNum] = pgId + "_" + str(self.max_doc_resolution) + ".pxml"
+
+                self.utilize_full_resolution_image(inputdir, pgNum)
             for entityElement in tree.xpath('//Entity'):
                 entityId = entityElement.get("ID")
                 pgIndex = entityElement.get("PAGE_NO")
