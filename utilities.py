@@ -23,13 +23,13 @@ def setup_parser():
 
 def add_transkribus_auth_args(parser: argparse.ArgumentParser):
     parser.add_argument('--tkbs-user', default='omilab.openu@gmail.com', help='Transkribus User name')
-    parser.add_argument('--tkbs-password', required=True, help='Transkribus Password')
+    parser.add_argument('--tkbs-password',  required=True, help='Transkribus Password')
     parser.add_argument('--tkbs-server', default='https://transkribus.eu/TrpServer')
 
 def add_transkribus_args(parser: argparse.ArgumentParser):
     add_transkribus_auth_args(parser)
     parser.add_argument('--tkbs-collection-id', required=True, help='Transkribust Collection Id for Documents')
-    parser.add_argument('--tkbs-htr-model-id', type=int, default=23005, help='Transkribus HTR model for OCR')
+    parser.add_argument('--tkbs-htr-model-id', type=int, default=46003 , help='Transkribus HTR model for OCR')
 
 def setup_logging(args: Any):
     logging.basicConfig(filename=args.log_file, filemode="w", level=logging.DEBUG if args.verbose else logging.INFO)
@@ -40,9 +40,9 @@ def init_tkbs_connection(args: argparse.Namespace):
 
     return tkbs
 
-def save_job_indication(folder: str, job_id: int):
+def save_job_indication(folder: str, job_id: int, dest_file: str = "job-status.json"):
     job_dict = {'job': job_id}
-    with open(os.path.join(folder, 'job-status.json'), 'w') as fp:
+    with open(os.path.join(folder, dest_file), 'w') as fp:
         json.dump(job_dict, fp)
 
 

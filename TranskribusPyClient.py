@@ -4,19 +4,11 @@
     Transkribus REST API for Python clients
     
     WORK IN PROGRESS...
-
-    Copyright Xerox(C) 2016 H. Déjean, JL. Meunier
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
+    Copyright Xerox(C) 2016, Naverlabs Europe 2019 H. Déjean, JL. Meunier
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
@@ -24,9 +16,6 @@
     Developed  for the EU project READ. The READ project has received funding 
     from the European Union’s Horizon 2020 research and innovation programme 
     under grant agreement No 674943.
-    
-    
-    This program was modified by OMILAB 2019, to extend it to additional usage of the Transkribus API.
     
 """
 from __future__ import absolute_import
@@ -42,8 +31,6 @@ import os
 import logging
 import requests
 from io import open
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 import json
 import shutil
@@ -82,7 +69,6 @@ class TranskribusClient():
     - https://transkribus.eu/wiki/index.php/REST_Interface
     - https://transkribus.eu/TrpServer/rest/application.wadl
     - https://github.com/Transkribus
-
     -- Query Parameters
     Most parameters can be passed as string.
     
@@ -112,8 +98,6 @@ class TranskribusClient():
     
     proxies = {'http://10.20.1.128': 'http://10.10.1.10:5323'}
     Note that proxy URLs must include the scheme.
-
-
     """
     
     #timestamp file extension
@@ -124,7 +108,7 @@ class TranskribusClient():
     _sSESSION_FILENAME   = "session.txt"
             
     #--- --- INIT --- -------------------------------------------------------------------------------------------------------------    
-    def __init__(self, sServerUrl='https://transkribus.eu/TrpServerTesting'#"https://transkribus.eu/TrpServer"#
+    def __init__(self, sServerUrl="https://transkribus.eu/TrpServer"
                  , proxies={}
                  , loggingLevel=logging.WARN):
         self._sessionID = None  # if logged in, id of the session, None otherwise
@@ -147,9 +131,11 @@ class TranskribusClient():
 #         self.sREQ_ReqListDict       = sServerUrl + '/rest/recognition/dicts'
 #         self.sREQ_ReqRNN            = sServerUrl + '/rest/recognition/rnn?' +'collId=%s&modelName=%s&dict=%s&id=%s&pages=%s'
 #         
-        self.sREQ_LA                = sServerUrl + '/rest/LA'
+#         
         self.sREQ_LA_batch          = sServerUrl + '/rest/LA/batch'
         self.sREQ_LA_analyze        = sServerUrl + '/rest/LA/analyze'
+        self.sREQ_LA                = sServerUrl + '/rest/LA'
+#         self.sREQ_LA                = sServerUrl + '/rest/LA/analyzeLayout'
 #     
 #         self.sREQ_LALines           = sServerUrl + '/rest/LA/lines'
 #         self.sREQ_LABaseLines       = sServerUrl + '/rest/LA/baselines'
@@ -158,9 +144,9 @@ class TranskribusClient():
         self.sREQ_collection_list                   = sServerUrl + '/rest/collections/%s/list'
         self.sREQ_collection_createCollection       = sServerUrl + '/rest/collections/createCollection'
         self.sREQ_collection_createDocument         = sServerUrl + '/rest/collections/%s/upload'
-        self.sREQ_collection_uploadProc             = sServerUrl + '/rest/uploads' #TEST
-        self.sREQ_collection_document               = sServerUrl + "/rest/collections/%s/%s"
+        self.sREQ_collection_deleteDocument         = sServerUrl + '/rest/collections/%s/%s'
 
+        self.sREQ_collection_export                 = sServerUrl + '/rest/collections/%s/%s/export'
         self.sREQ_collection_fulldoc                = sServerUrl + '/rest/collections/%s/%s/fulldoc'
         self.sREQ_collection_fulldoc_xml            = sServerUrl + '/rest/collections/%s/%s/fulldoc.xml'
         self.sREQ_collections_postPageTranscript    = sServerUrl + '/rest/collections/%s/%s/%s/text'
@@ -172,7 +158,10 @@ class TranskribusClient():
         
         self.sREQ_recognition                       = sServerUrl + '/rest/recognition'
         self.sREQ_recognition_htrModels             = sServerUrl + '/rest/recognition/htrModels'
+        
         self.sREQ_recognition_htr                   = sServerUrl + '/rest/recognition/htr'
+        self.sREQ_recognition_pylaia                = sServerUrl + '/rest/pylaia/%s/%s/recognition'
+
         self.sREQ_recognition_htrRnnModels          = sServerUrl + '/rest/recognition/nets' #htrModels' #/rest/recognition/nets'
         self.sREQ_recognition_htrRnnModels          = sServerUrl + '/rest/recognition/htrModels'
         self.sREQ_recognition_listHtr               = sServerUrl + '/rest/recognition/%s/list'      
@@ -181,8 +170,6 @@ class TranskribusClient():
         self.sREQ_recognition_htrRnnDicts           = sServerUrl + '/rest/recognition/dicts'
         self.sREQ_recognition_htrRnn                = sServerUrl + '/rest/recognition/%s/%s/htrCITlab'
         self.sREQ_recognition_htrTrainCITlab        = sServerUrl + '/rest/recognition/htrTrainingCITlab'
-
-        self.sREQ_recognition_pylaia                = sServerUrl + '/rest/pylaia/%s/%s/recognition'
         
         self.sREQ_jobs                              = sServerUrl + '/rest/jobs/%s'
         self.sREQ_jobskill                          = sServerUrl + '/rest/jobs/%s/kill'
@@ -238,7 +225,6 @@ class TranskribusClient():
         """
         Return the Transkribus data structure (XML as a DOM) 
         or raise an exception
-
         Caller must free the DOM using the _xmlFreeDoc method of this object.
         """
         self._assertLoggedIn()
@@ -247,8 +233,7 @@ class TranskribusClient():
         resp.raise_for_status()
 
         #we get some json serialized data
-        #return self._xmlParseDoc(resp.text)
-        return self._xmlFreeDoc(resp.text)
+        return self._xmlParseDoc(resp.text)
 
     def listDocsByCollectionId(self, colId, index=None, nValues=None, sortColumn=None, sortDirection=None):
         """
@@ -273,7 +258,7 @@ class TranskribusClient():
         """
         self._assertLoggedIn()
         myReq = self.sREQ_collection_createCollection
-        resp = self._POST(myReq, {'collName':sName }, sContentType=None)
+        resp = self._POST(myReq, params={'collName':sName }, sContentType='application/x-www-form-urlencoded')
         resp.raise_for_status()
         return resp.text
         
@@ -292,40 +277,22 @@ class TranskribusClient():
         """
             upload a set of images in a folder
             images must be zipped
-
             
-        """ 
+        """
+
         self._assertLoggedIn()
         myReq = self.sREQ_collection_createDocument % colId
         resp = self._POST(myReq, data=zipFileStreamIO,sContentType='application/octet-stream')
         resp.raise_for_status()
         return resp.text
-    
-#    def detectLines(self, collId, doc)
-    
-    def createDocFromImages(self, collection, structure_json, body_parts):
-        self._assertLoggedIn()
-        myReq = self.sREQ_collection_uploadProc
-        params = self._buidlParamsDic(collId=collection)
-        resp = self._POST(myReq, params, data=structure_json, sContentType='application/json')
-        resp.raise_for_status()
-        resultTag  = self._xmlParse__xpathEval_getContent(resp.text, "//uploadId")
-        uploadId = resultTag[0].text
-        upReq = self.sREQ_collection_uploadProc + '/' + uploadId 
-        for part in body_parts:
-            upresp = self._PUT(upReq, pagefiles=part)
-            upresp.raise_for_status()
-        return upresp.text
-
         
-    
     def deleteDocument(self, colId, docId):
         """
         delete a document from a collection
         Return True
         """
         self._assertLoggedIn()
-        myReq = self.sREQ_collection_document%(colId, docId)
+        myReq = self.sREQ_collection_deleteDocument%(colId, docId)
         resp = self._DELETE(myReq, { 'collId':colId, 'id':docId })
         resp.raise_for_status()
         return resp
@@ -369,11 +336,16 @@ class TranskribusClient():
         else:     
             return resp.text
 
-    def postPxml(self, colId, docId, pnum, pdata):
+
+    def exportCollection(self,colId,docId,sparams):
+        """
+            export document 
+        """
         self._assertLoggedIn()
-        myReq = self.sREQ_collections_postPageTranscript % (colId,docId,pnum)
-        files = pdata
-        resp = self._POSTfiles(myReq, files)
+        myReq = self.sREQ_collection_export % (colId,docId)
+
+        sjson=json.loads(sparams)
+        resp = self._POST(myReq, json=sjson,sContentType = "application/json")
         resp.raise_for_status()
         return resp.text
 
@@ -389,7 +361,7 @@ class TranskribusClient():
                                        , parentId=None
                                        , bPnumIsPageId=None
                                        , sToolName=None
-                                       , status=None
+                                       , status = None
                                        , bEncoded=False):  #bEncoded is not part of official API, it is a convenience for Pythonic API
         """
         Post a new transcript for a page
@@ -687,7 +659,7 @@ class TranskribusClient():
             savefile=open(destXmlFilename,'wt',encoding='utf-8')
             savefile.write(resp.text)  
             savefile.close()  
-#             trace('.')
+            print('.',end=''); sys.stdout.flush()
 #             flush()
         with open(docDir+os.sep+"max.ts", "w") as fd: fd.write("%s"%doc_max_ts) 
 
@@ -708,6 +680,43 @@ class TranskribusClient():
         
     # -------LAYOUT ANALYSIS ------------------------------------------------------------------------------------------
 
+    def tableMatching(self,templateID,colId, sDescription,params,sJobImpl="CvlTableJob"):
+        """
+            apply a template to a transcript
+            templateID= transcript ID
+            
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<jobParameters>
+    <docList>
+        <docs>
+            <docId>1</docId>
+            <pageList>
+                <pages>
+                    <pageId>2</pageId>
+                    <tsId>3</tsId>
+                </pages>
+            </pageList>
+        </docs>
+    </docList>
+    <params>
+        <entry>
+            <key>templateId</key>
+            <value>1543</value>
+        </entry>
+    </params>
+</jobParameters>            
+            
+        """
+        
+        self._assertLoggedIn()
+        myReq = self.sREQ_LA #self.sREQ_LA_analyze
+        params = self._buidlParamsDic(collId=colId
+                                    , jobImpl=sJobImpl)
+#         print (myReq, params, sDescription)
+        resp = self._POST(myReq, params=params, data=sDescription,sContentType="application/xml")
+        resp.raise_for_status()
+        return resp.text         
+        
     def analyzeLayoutNew(self, colId, sDescription, sJobImpl="CITlabAdvancedLaJob"
                     ,  sPars=""
                     , bBlockSeg = False
@@ -769,7 +778,7 @@ class TranskribusClient():
                                     , doCreateJobBatch=bCreateJobBatch
                                     , jobImpl=sJobImpl)
         
-        print (myReq, params, sDescription)
+#         print (myReq, params, sDescription)
         resp = self._POST(myReq, params=params, data=sDescription,sContentType="application/xml")
 #         print resp.text
         resp.raise_for_status()
@@ -789,23 +798,6 @@ class TranskribusClient():
         myReq = self.sREQ_LA_batch
         params = self._buidlParamsDic(collId=colId, id=docId, pages=sPages, doBlockSeg=bBlockSeg, doLineSeq=bLineSeg)
         resp = self._POST(myReq, params=params, sContentType=None)
-        resp.raise_for_status()
-        return resp.text       
-
-    def analyzeLayout(self,colId, docPagesJson, bBlockSeg, bLineSeg):
-        """
-        apply Layout Analysis
-            int colId, 
-            int docId,
-            String pages, (1 or 1,5 or 1-5, or 1,3,5-8 etc)
-            boolean doBlockSeg (True by default),
-            boolean doLineSeg  (True by default)
-        return a jobId
-        """
-        self._assertLoggedIn()
-        myReq = self.sREQ_LA
-        params = self._buidlParamsDic(collId=colId, doBlockSeg=bBlockSeg, doLineSeq=bLineSeg)
-        resp = self._POST(myReq, params=params, data=docPagesJson, sContentType='application/json')
         resp.raise_for_status()
         return resp.text       
 
@@ -849,7 +841,7 @@ class TranskribusClient():
         #we get some json serialized data
         return json.loads(resp.text)
         
-    def htrDecode(self, colId, sHtrModelName, docId):
+    def htrDecode(self, colId, sHtrModelName, docId, sPages):
         """
         Do the HTR using the given model.
         - Maybe you can set sPages to None, or both docId and sPage to None ?? 
@@ -858,8 +850,8 @@ class TranskribusClient():
         or raise an exception
         """
         self._assertLoggedIn()
-        myReq = self.sREQ_recognition_htrRnn % (colId, sHtrModelName)
-        params = self._buidlParamsDic(id=docId)
+        myReq = self.sREQ_recognition_htr
+        params = self._buidlParamsDic(collId=colId, modelName=sHtrModelName, id=docId, pages=sPages)
         resp = self._POST(myReq, params=params)
         resp.raise_for_status()
         return resp.text
@@ -872,7 +864,8 @@ class TranskribusClient():
         """
         self._assertLoggedIn()
         myReq = self.sREQ_recognition_listHtr % (colid)
-        params = self._buidlParamsDic(prov='CITlab')
+        #params = self._buidlParamsDic(prov='CITlab')
+        params={}
         resp = self._GET(myReq, params=params, accept="application/json")
         resp.raise_for_status()
         return json.loads(resp.text)
@@ -915,7 +908,6 @@ class TranskribusClient():
         with your credentials. There you will find a dir. called "dictTmp"
         containing the sent files, that will be used for HTR. You can also put
         dictionaries there via FTP and use them for HTR with the tempDict parameter.
-
         POST /TrpServerTesting/rest/recognition/tempDict?fileName=test.dict HTTP/1.1
         Host: transkribus.eu
         Content-Type: text/plain
@@ -933,7 +925,7 @@ class TranskribusClient():
         return resp.text
 
         
-    def htrRnnDecode(self, colId, sRnnModelID, sDictName, docId, sPagesDesc, bDictTemp=True):
+    def htrRnnDecode(self, colId, sRnnModelID,  docId, sPagesDesc, bPyLaia= True,bDictTemp=False):
         """
         Do the HTR using the given RNN model and dictionary.
         - Maybe you can set sPages to None, or both docId and sPage to None ?? 
@@ -954,20 +946,21 @@ class TranskribusClient():
         the processed lines in the new PAGE XML.
         
         """
-        
         self._assertLoggedIn()
-        #myReq = self.sREQ_recognition_htrRnn % (colId,sRnnModelID)
-        myReq = self.sREQ_recognition_pylaia % (colId,sRnnModelID)
-        if bDictTemp:
-            params = self._buidlParamsDic(id=docId,tempDict=sDictName)
+        if bPyLaia:
+            myReq = self.sREQ_recognition_pylaia % (colId,str(sRnnModelID))
         else:
-            params = self._buidlParamsDic(id=docId,dict=sDictName)
+            myReq = self.sREQ_recognition_htrRnn % (colId,sRnnModelID)
+        #if bDictTemp:
+        #    params = self._buidlParamsDic(id=docId,tempDict=sDictName)
+        #elif sDictName != "None":
+        #    params = self._buidlParamsDic(id=docId,dict=sDictName, doLinePolygonSimplification=False,keepOriginalLinePolygons=True)
+        #else: 
+        params = self._buidlParamsDic(id=docId,doLinePolygonSimplification=False,keepOriginalLinePolygons=True)
         postparams= sPagesDesc #'{"docId":17442,"pageList":{"pages":[{"pageId":400008,"tsId":1243590,"regionIds":[]}]}}'
 #         postparams= '{"docId":17442,"pageList":{"pages":[{"pageId":400008,"tsId":1243590,"regionIds":[]}]}}'
 
-        
         resp = self._POST(myReq, params=params,data=postparams ,  sContentType = "application/json")
-        print(resp.content)
         resp.raise_for_status()
         return resp.text
 
@@ -1156,7 +1149,6 @@ doBlockSeg=false
         
         proxies = {'http://10.20.1.128': 'http://10.10.1.10:5323'}
         Note that proxy URLs must include the scheme.
-
         return True or raise an exception 
         """
         self._assertDict(proxies, "Proxy definition")
@@ -1165,28 +1157,17 @@ doBlockSeg=false
             logging.info("- %s proxy set to : '%s'"%(sProtocol, sUrl))
         return True
         
-    def _POST(self, sRequest, params={}, data={}, sContentType = "application/xml"):
+    def _POST(self, sRequest, json={},params={}, data={}, sContentType = "application/xml"):
         """
         if you set sContentType to None or "", nothing is specified in the request header
         """
         dHeader = {'Cookie':'JSESSIONID=%s'%self._sessionID}
         if sContentType: dHeader['Content-Type'] = sContentType
-            
-        return requests.post(sRequest, params=params, headers=dHeader
+        return requests.post(sRequest, json=json,params=params, headers=dHeader
                              , proxies=self._dProxies, data=data, verify=False)        
 
-    def _POSTfiles(self, sRequest, params={}, data={}, files={}, sContentType = "application/xml"):
-        """
-        if you set sContentType to None or "", nothing is specified in the request header
-        """
-        dHeader = {'Cookie':'JSESSIONID=%s'%self._sessionID}
-        if sContentType: dHeader['Content-Type'] = sContentType
-            
-        return requests.post(sRequest, params=params, headers=dHeader
-                             , proxies=self._dProxies, data=data, files=files, verify=False)        
-
     def _DELETE(self, sRequest, params={}, data={}):
-        return requests.delete(sRequest, params=params, headers={'Cookie':'JSESSIONID=%s'%self._sessionID}
+        return requests.delete(sRequest,  params=params, headers={'Cookie':'JSESSIONID=%s'%self._sessionID}
                                , proxies=self._dProxies, data=data, verify=False)        
         
     def _GET(self, sRequest, params={}, stream=None, accept="application/xml"):
@@ -1197,15 +1178,6 @@ doBlockSeg=false
             return requests.get(sRequest, params=params, headers={'Cookie':'JSESSIONID=%s'%self._sessionID, 'Accept':accept}
                                 , proxies=self._dProxies, verify=False, stream=stream)
             
-    def _PUT(self, sRequest, params={}, pagefiles={}):
-        """
-        if you set sContentType to None or "", nothing is specified in the request header
-        """
-        dHeader = {'Cookie':'JSESSIONID=%s'%self._sessionID}
-        #if sContentType: dHeader['Content-Type'] = sContentType
-            
-        return requests.put(sRequest, params=params, headers=dHeader, proxies=self._dProxies, files=pagefiles, verify=False)        
-        
 
     def _buidlParamsDic(self, **kwargs):
         """
