@@ -11,6 +11,9 @@ from utilities import add_transkribus_args, find_existing, gather_document_folde
 
 from TranskribusPyClient import TranskribusClient
 
+import zipfile
+import xml.etree.ElementTree as ET
+
 def get_args():
     parser = setup_parser()
     add_transkribus_args(parser)
@@ -36,10 +39,12 @@ def main():
     logging.info(f'Running download alto on all documents from Trankribus collection {args.tkbs_collection_id}')
 
     folders = list(gather_document_folders(args.base))
+    print(folders)
 
     downloaded = 0
     skipped = 0
-    errors = 0
+    errors_download = 0
+    errors_edit_mets = 0
 
     for folder in tqdm(folders):
         job_indication_file = os.path.join(folder, 'job-status-export-alto.json')
@@ -49,27 +54,48 @@ def main():
                 data = json.load(f)
                 job_id = data["job"]
 
-                if os.path.exists(f'{folder}/export_document_{job_id}.zip'):
+                if os.path.exists(f'{folder}\\export_document_{job_id}.zip'):
                     skipped += 1
                     continue
 
-                print(f'export job_id {job_id}')
                 resp = tkbs.getJobStatus(job_id)
                 if resp['state'] == 'FINISHED':
-                    with open(f'{folder}/export_document_{job_id}.zip', 'wb') as out_file:
+                    zip_path = f'{folder}\\export_document_{job_id}.zip'
+                    with open(zip_path, 'wb') as out_file:
                         content = requests.get(resp['result'], stream=True).content
                         out_file.write(content)
                         downloaded += 1
+
+                        try:
+                            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                                outpath = f'{folder}\\export_document_{job_id}'
+                                zip_ref.extractall(outpath)
+
+                                unzipped_folders = list(gather_document_folders(args.base, f'mets.xml'))
+                                for unzipped_folder in unzipped_folders:
+                                    with open(os.path.join(unzipped_folder, "mets.xml"), "r+") as mets_file:
+                                        mets = mets_file.read()
+                                    mets = mets.replace("MANUSCRIPT", "PHYSICAL")
+                                    mets = mets.replace('<ns3:div ID="PAGE_1" ORDER="1" TYPE="SINGLE_PAGE">', '<ns3:div ID="PAGE_1" ORDER="1" TYPE="PAGE">')
+                                    with open(os.path.join(unzipped_folder, "mets.xml"), "w") as mets_file:
+                                        mets_file.write(mets)
+
+                        except Exception as e:
+                            print("ERROR")
+                            print(f'{e}')
+                            print("END ERROR")
+                            errors_edit_mets += 1
+
                 else :
                     print (f'job {resp["jobId"]} is {resp["state"]}. Please try again later')
-                    errors += 1
+                    errors_download += 1
             except Exception as e:
                 print("ERROR")
                 print(f'{e}')
                 print("END ERROR")
-                errors += 1
+                errors_download += 1
 
-    print(f'Done. downloaded: {downloaded}. skipped: {skipped}. errors: {errors}')
+    print(f'Done. downloaded: {downloaded}. skipped: {skipped}. errors download: {errors_download}. errors edit: {errors_edit_mets}')
 
 
 if __name__ == '__main__':

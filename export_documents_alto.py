@@ -26,7 +26,7 @@ params="""
       "doWriteTagsXlsx" : false,
       "doWriteTagsIob" : false,
       "doWriteTablesXlsx" : false,
-      "doWriteStructureInMets" : false,
+      "doWriteStructureInMets" : true,
       "doCreateTitle" : false,
       "useVersionStatus" : "Latest version",
       "writeTextOnWordLevel" : false,
