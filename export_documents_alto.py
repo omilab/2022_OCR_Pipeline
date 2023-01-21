@@ -90,14 +90,11 @@ def main():
 
     tkbs = TranskribusClient(sServerUrl=args.tkbs_server)
     tkbs.auth_login(args.tkbs_user, args.tkbs_password, True)
-    #tkbs = init_tkbs_connection(args)
 
     print(f'Running export to alto documents from Trankribus collection {args.tkbs_collection_id}')
     logging.info(f'Running export to alto on all documents from Trankribus collection {args.tkbs_collection_id}')
 
-    logging.debug('Loading documents from Transkribus')
     existing_docs = tkbs.listDocsByCollectionId(args.tkbs_collection_id)
-
     jobs_issued = skipped = missing = 0
 
     folders = list(gather_document_folders(args.base))
