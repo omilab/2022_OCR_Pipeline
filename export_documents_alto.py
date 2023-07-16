@@ -19,7 +19,7 @@ params="""
       "doExportPageXml" : true,
       "doExportAltoXml" : true,
       "doExportSingleTxtFiles" : false,
-      "doWritePdf" : false,
+      "doWritePdf" : true,
       "doWriteTei" : false,
       "doWriteDocx" : false,
       "doWriteOneTxt" : false,
@@ -51,7 +51,7 @@ params="""
       "doPdfImagesPlusText" : true,
       "doPdfWithTextPages" : false,
       "doPdfWithTags" : false,
-      "doPdfWithArticles" : false,
+      "doPdfWithArticles" : true,
       "doPdfA" : false,
       "pdfImgQuality" : "view"
    },

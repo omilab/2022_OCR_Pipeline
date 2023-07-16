@@ -86,10 +86,14 @@ def main():
 
     folders = list(gather_document_folders(args.base))
     for folder in tqdm(folders):
+
+        print("load_document")
         doc = load_document(folder)
 
+        print("find_existing")
         existing_doc = find_existing(doc, existing_docs)
         if not existing_doc:
+            print(f"Can't locate document {doc.title} in collection")
             logging.error(f"Can't locate document {doc.title} in collection")
             error += 1
             continue
@@ -104,6 +108,7 @@ def main():
             logging.debug(f'Deleted old results of {doc.title}')
 
         logging.info(f'Downloading data for {doc.title}')
+        print("download_results")
         download_results(tkbs, doc, args.tkbs_collection_id, existing_doc['docId'], output_folder, args.line_threshold)
         downloaded += 1
 

@@ -1,5 +1,6 @@
 import json
 import logging
+import shutil
 import glob, os
 from typing import Any
 from xml.etree import ElementTree
@@ -15,6 +16,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 from PIL import Image
+from pdfrw import PdfReader, PdfWriter
 
 def get_args():
     parser = setup_parser()
@@ -27,7 +29,6 @@ def lines_in_doc(doc: dict):
     return doc['md']['nrOfLines'] > 0
 
 def unzip_folder(zip_path: str, folder: str, job_id: int):
-    print(zip_path)
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         outpath = f'{folder}\\export_document_{job_id}'
         zip_ref.extractall(outpath)
@@ -42,22 +43,86 @@ def edit_mets(args):
         with open(os.path.join(unzipped_folder, "mets.xml"), "w") as mets_file:
             mets_file.write(mets)
 
-def rename_folders(zip_path: str):
+def create_folders_tree(second_level_file: str, args) -> str:
+    strings = second_level_file.split("-")
+    pub_code = strings[1]
+    if not os.path.exists(os.path.join(args.base, pub_code)):
+        os.mkdir(os.path.join(args.base,pub_code))   
+    if not os.path.exists(os.path.join(args.base, pub_code, strings[2])):
+        os.mkdir(os.path.join(args.base,pub_code, strings[2]))    
+    if not os.path.exists(os.path.join(args.base, pub_code, strings[2], strings[3])):
+        os.mkdir(os.path.join(args.base, pub_code, strings[2], strings[3]))       
+    issue_date = strings[2] + "/" + strings[3] + "/" + strings[4] + "_01"
+    dest_folder = os.path.join(args.base, pub_code, issue_date)
+    if not os.path.exists(dest_folder):       
+        os.mkdir(dest_folder)
+        os.mkdir(os.path.join(dest_folder, "ALTO"))
+        os.mkdir(os.path.join(dest_folder, "PAGEPDF"))
+
+    return dest_folder
+
+def build_files_and_folders_hirrechy(zip_path: str, args) -> str:
+    dest_folder = ''
     root_path = zip_path.replace(".zip","")
     for first_level_file in os.listdir(root_path):
         if ".txt" not in first_level_file:
             sub_path = os.path.join(root_path,first_level_file)
             for second_level_file in os.listdir(sub_path):
-                strings = second_level_file.split("-")
-                pub_code = strings[1]
-                issue_date = strings[2] + strings[3] + strings[4] + "_01"
-                os.rename(sub_path, os.path.join(root_path,issue_date))
-                os.rename(
-                    os.path.join(root_path,issue_date,second_level_file),
-                    os.path.join(root_path,issue_date,pub_code)
-                )
+                dest_folder = create_folders_tree(second_level_file, args)
+                if ".pdf" not in second_level_file:
+                    second_level_file_full_path = os.path.join(sub_path, second_level_file)
+                    for third_level_file in os.listdir(second_level_file_full_path):
+                        if third_level_file == "alto":
+                            third_level_file_full_path = os.path.join(second_level_file_full_path, third_level_file)
+                            for alto_file in os.listdir(third_level_file_full_path):
+                                shutil.copy(os.path.join(third_level_file_full_path, alto_file), os.path.join(dest_folder, "ALTO", alto_file))
+                else:          
+                    extract_pdf_to_single_pages(second_level_file, sub_path, dest_folder)
+                    shutil.move(os.path.join(sub_path,second_level_file), os.path.join(dest_folder, second_level_file))
+
+    return dest_folder
+
+def extract_pdf_to_single_pages(pdf_file_name: str, sub_path: str, dest_folder: str):
+    pages = PdfReader(os.path.join(sub_path , pdf_file_name)).pages
+    i = 0
+    for page in pages:
+        single_page_pdf_name = calc_page_number(i)
+        outdata = PdfWriter(os.path.join(dest_folder, "PAGEPDF" ,single_page_pdf_name))
+        outdata.addpage(pages[i])
+        outdata.write()
+        i += 1
+
+def calc_page_number(index: int) -> str:
+    if index >= 9 :
+        return f'000{index+1}.pdf'
+    else:
+        return f'0000{index+1}.pdf'
 
 
+def edit_and_rename_alto_files(path: str):
+    alto_files_path = os.path.join(path,"ALTO")
+    for alto_file_path in os.listdir(alto_files_path):
+        new_file_name = rename_file(alto_files_path, alto_file_path)
+        edit_file(alto_files_path, new_file_name)
+
+def edit_file(folder: str, file_name: str):
+    page_number = int(file_name.replace('.xml',''))
+    with open(os.path.join(folder, file_name), "r+", encoding="utf8") as alto_file:
+        alto = alto_file.read()
+    alto = alto.replace('TextBlock ID="', f'TextBlock ID="P{page_number}_')
+    with open(os.path.join(folder, file_name), "w", encoding="utf8") as alto_file:
+        alto_file.write(alto)
+
+
+def rename_file(folder: str, file_name: str) -> str:
+    page_number = file_name[2:5]
+    page_number = "00" + page_number
+    new_file_path = os.path.join(folder,f'{page_number}.xml')
+    os.rename(
+        os.path.join(folder,file_name), 
+        new_file_path
+        )
+    return f'{page_number}.xml'
 
 def write_error(e: Exception):
     print("ERROR")
@@ -85,6 +150,16 @@ def convert_to_jpg(args):
                 rgb_im = im.convert('RGB')
                 rgb_im.save(os.path.join(folder, file.replace('png','jpg')))
                 os. remove(os.path.join(folder,file))
+
+def remove_folder(path: str, destination_folder: str):
+    os.remove(path)
+    extracted_folder_path = path.replace(".zip","")
+    for folder in os.listdir(extracted_folder_path):
+        alto_path = os.path.join(extracted_folder_path, folder)
+        if os.path.isdir(alto_path):
+            shutil.move(alto_path, destination_folder)
+
+    shutil.rmtree(extracted_folder_path)
 
 def main():
 
@@ -119,10 +194,10 @@ def main():
                     downloaded += download(zip_path, resp)
 
                     try:
+
                         unzip_folder(zip_path, folder, job_id)
-                        convert_to_jpg(args)
-                        edit_mets(args)
-                        rename_folders(zip_path)
+                        new_root_path = build_files_and_folders_hirrechy(zip_path, args)
+                        edit_and_rename_alto_files(new_root_path)
 
                     except Exception as e:
                         write_error(e)
