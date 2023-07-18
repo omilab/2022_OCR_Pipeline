@@ -182,7 +182,9 @@ def main():
             job_indication_file = os.path.join(args.base, folder, 'job-status-export-alto.json')
             if os.path.exists(job_indication_file):
                 try:
+                    
                     job_id = get_job_id(job_indication_file)
+                    logging.info(f"Download job {job_id} output")
 
                     if os.path.exists(f'{folder}\\export_document_{job_id}.zip'):
                         skipped += 1
@@ -195,13 +197,17 @@ def main():
 
                         try:
 
+                            logging.info(f"Unzipping")
                             unzip_folder(zip_path, os.path.join(args.base, folder), job_id)
+                            logging.info(f"Building folders")
                             new_root_path = build_files_and_folders_hirrechy(zip_path, args)
+                            logging.info(f"edit and rename")
                             edit_and_rename_alto_files(new_root_path)
 
                         except Exception as e:
                             write_error(e)
                             errors_edit_mets += 1
+                            logging.exception(f"Exception: {e}")
 
                     else :
                         print (f'job {resp["jobId"]} is {resp["state"]}. Please try again later')
@@ -209,7 +215,10 @@ def main():
                 except Exception as e:
                     write_error(e)
                     errors_download += 1
+                    logging.exception(f"Exception: {e}")
+        break
 
+    logging.info(f'Done. downloaded: {downloaded}. skipped: {skipped}. errors download: {errors_download}. errors edit: {errors_edit_mets}')
     print(f'Done. downloaded: {downloaded}. skipped: {skipped}. errors download: {errors_download}. errors edit: {errors_edit_mets}')
 
 
