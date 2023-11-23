@@ -73,7 +73,7 @@ This command will create a collection and print its ID. You need this collection
 ### stage 1 - unzip the Document.zip files
 
     python unzip_documents.py <publication-root-folder>
-### stage 2 - Convert olice input to transkribus format
+### stage 2 - Convert olive input to transkribus format
 
     python convert_olive_to_tkbs <publication-root-folder>
 
